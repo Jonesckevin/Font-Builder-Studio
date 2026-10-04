@@ -1,0 +1,63 @@
+---
+# Test-only compose file.
+#
+# Everything needed to run the suites lives here, so the production
+# docker-compose.yml carries no test configuration and `docker compose up` can
+# never start a test container. Point Compose at this file explicitly:
+#
+#   docker compose -f docker-compose.test.yml run --rm -T web-test
+#   docker compose -f docker-compose.test.yml run --rm -T web-test python tests/api_smoke.py
+#
+# App/tests/ is committed alongside this file, so a fresh clone can build the
+# test image and run the suites. Only the production docker-compose.yml stays
+# free of them.
+#
+# The hardening and logging blocks are repeated from docker-compose.yml rather
+# than inherited, because YAML anchors do not cross files in Compose.
+
+# Read-only root filesystem: the app only ever writes to /data (tmpfs below) and
+# /tmp. Bytecode caching in /app is skipped harmlessly.
+x-hardening: &hardening
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  deploy:
+    resources:
+      limits:
+        cpus: "1.0"
+        memory: 1G
+        pids: 512
+
+# Logs go to stdout/stderr. The bounds stop the json-file driver growing the log
+# without limit.
+x-logs: &bounded-logs
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # Test image: the app plus tests/ and tools/, which the production image
+  # deliberately omits. It has no published port - the suites start their own
+  # server on loopback. The `test` build stage is declared before `runtime` in
+  # the Dockerfile, so a bare `docker build .` still produces the production
+  # image.
+  web-test:
+    build:
+      context: .
+      target: test
+    image: font-builder-studio:test
+    container_name: font-builder-studio-test
+    # Disposable scratch rather than a volume: the suites write projects and a
+    # users.db, and none of that should outlive the run.
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+      - /data:size=256m,mode=1777
+    environment:
+      - MAX_UPLOAD_MB=25
+      - GUNICORN_WORKERS=2
+    command: ["python", "tests/run_suites.py"]
+    <<: *hardening
+    logging: *bounded-logs

@@ -1,0 +1,16 @@
+# Font Builder Studio - runtime dependencies
+#
+# NOTE: the font engine is NOT a pip dependency. It is FontForge's Python
+# bindings, installed from the distro as `python3-fontforge` (see Dockerfile).
+# That package provides the `fontforge` and `psMat` extension modules.
+
+# --- Web framework ---------------------------------------------------------
+flask>=3.0.0
+flask-cors>=4.0.0
+flask-limiter>=3.5.0
+werkzeug>=3.0.0
+gunicorn>=21.0.0
+
+# --- Upload validation -----------------------------------------------------
+# libmagic1 must be installed in the image (see Dockerfile).
+python-magic>=0.4.27

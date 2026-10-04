@@ -1,0 +1,87 @@
+---
+# Production compose file: the `web` service only.
+#
+# The test suites live in docker-compose.test.yml, so `docker compose up` cannot
+# start one and this file carries no test configuration at all. That file repeats
+# the hardening and logging blocks below rather than inheriting them, because
+# YAML anchors do not cross files in Compose.
+#
+# Shared settings sit above `services` because a YAML alias has to follow its
+# anchor.
+
+# Read-only root filesystem: the app only ever writes to /data (the volume
+# below) and /tmp (tmpfs). Bytecode caching in /app is skipped harmlessly.
+x-hardening: &hardening
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  deploy:
+    resources:
+      limits:
+        cpus: "1.0"
+        memory: 1G
+        pids: 512
+
+# Logs go to stdout/stderr, which is what `docker compose logs` reads. This is
+# what stops the json-file driver keeping every line forever - without it Docker
+# grows the log without limit.
+x-logs: &bounded-logs
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  web:
+    build:
+      context: .
+      # Stated explicitly so reordering the Dockerfile cannot silently publish a
+      # test-riddled image.
+      target: runtime
+    image: font-builder-studio:local
+    container_name: font-builder-studio
+    ports:
+      - "${DOCKER_PORT:-9017}:5000"
+    volumes:
+      # Docker-managed, so nothing is written into the working tree. To keep the
+      # files where you can inspect them by hand instead, swap in:
+      #   - ${DATA_DIR:-./data}:/data
+      - fbs-data:/data
+    tmpfs:
+      # Scratch space for the sandboxed font worker (temp uploads/generated files)
+      - /tmp:size=256m,mode=1777
+    environment:
+      # Core
+      - MAX_UPLOAD_MB=25
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-3}
+
+      # Authentication
+      - ALLOW_AUTH=${ALLOW_AUTH:-false}
+      - REQUIRE_AUTH=${REQUIRE_AUTH:-false}
+      - ALLOW_USER_REGISTRATION=${ALLOW_USER_REGISTRATION:-true}
+      - ALLOW_GUEST_LOGIN=${ALLOW_GUEST_LOGIN:-true}
+      - REQUIRE_SECRETS=${REQUIRE_SECRETS:-false}
+
+      - SECRETS=${SECRETS:-}
+      - SECRET_KEY=${SECRET_KEY:-}
+
+      # WebAuthn / passkeys - set RP_ID to your domain (no port)
+      - RP_ID=${RP_ID:-localhost}
+      - ORIGIN=${ORIGIN:-localhost}
+
+      # Security
+      - CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS:-}
+      - TRUST_PROXY=${TRUST_PROXY:-false}
+    restart: unless-stopped
+    <<: *hardening
+    logging: *bounded-logs
+
+volumes:
+  # Docker creates this already owned by appuser, because the image pre-creates
+  # /data with that ownership. `docker volume ls` shows the real (project-
+  # prefixed) name; to inspect or back it up:
+  #   docker run --rm -v <volume>:/data -v "$PWD:/out" alpine \
+  #     tar czf /out/fbs-backup.tgz -C /data .
+  fbs-data:

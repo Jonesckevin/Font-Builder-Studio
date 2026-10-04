@@ -1,0 +1,12 @@
+# Font Builder Studio - optional authentication subsystem.
+# Installed in a dedicated layer so bumping these does not invalidate the
+# main dependency cache layer.
+#
+# PyJWT is pinned to 2.15.1: 2.13.0 carries CVE-2026-102268 (CRITICAL, auth
+# bypass) plus several HIGH token-forgery/bypass advisories fixed in 2.14.0
+# and 2.15.0.
+
+PyJWT==2.15.1
+bcrypt==4.2.1
+webauthn>=2.0.0,<3.0.0
+cryptography>=46.0.0

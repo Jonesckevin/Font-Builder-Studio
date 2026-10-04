@@ -1,0 +1,26 @@
+# Version control / editor
+.git
+.gitignore
+.vscode
+
+# Python
+__pycache__/
+.venv/
+venv/
+
+# Runtime data (mounted as a volume instead)
+data/
+*.db
+
+# Generated inside the image by tools/build_unicode_index.py. Excluded so a
+# stale local copy can never shadow the freshly generated one.
+App/resources/
+
+# Docs / tooling output. Nothing here is COPYed into an image, so keeping them
+# out of the build context only saves sending them to the daemon.
+docs/
+README.md
+# A second, standalone copy of the built site (its own git repository). Without
+# this every docker build would ship 7 MB of it to the daemon for nothing.
+studio/
+*.log

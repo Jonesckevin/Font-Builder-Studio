@@ -1,0 +1,54 @@
+{
+  "app": {
+    "title": "Font Builder Studio",
+    "subtitle": "Browser-based font editor",
+    "footer_text": "Font Builder Studio",
+    "repository": "https://github.com/jonesckevin/font-builder-studio",
+    "repository_name": "jonesckevin/font-builder-studio"
+  },
+  "seo": {
+    "title": "Font Builder Studio \u2014 Browser-Based Font Editor",
+    "description": "Create, edit and convert fonts in your browser. Import and export SFD, TTF, OTF, UFO, WOFF and WOFF2 with an interactive glyph outline editor.",
+    "url": "https://localhost/",
+    "image": "https://localhost/static/og-image.png",
+    "site_name": "Font Builder Studio"
+  },
+  "upload": {
+    "max_file_size_mb": 25,
+    "allowed_extensions": [
+      ".sfd", ".sfdir",
+      ".ttf", ".otf", ".ttc",
+      ".woff", ".woff2",
+      ".ufo", ".ufoz", ".zip",
+      ".pfb", ".pfa",
+      ".svg"
+    ],
+    "allowed_mime_types": [
+      "application/x-font-ttf",
+      "application/x-font-otf",
+      "application/font-sfnt",
+      "application/font-woff",
+      "application/font-woff2",
+      "application/vnd.ms-opentype",
+      "application/octet-stream",
+      "application/zip",
+      "application/x-zip-compressed"
+    ]
+  },
+  "editor": {
+    "default_em": 1000,
+    "default_ascent": 800,
+    "default_descent": 200,
+    "max_glyphs": 65535,
+    "min_zoom": 0.05,
+    "max_zoom": 40,
+    "grid_step": 10,
+    "undo_depth": 100
+  },
+  "engine": {
+    "worker_timeout_seconds": 60,
+    "max_concurrent_workers": 2,
+    "worker_memory_limit_mb": 512,
+    "worker_cpu_limit_seconds": 30
+  }
+}
