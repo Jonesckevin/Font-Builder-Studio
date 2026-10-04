@@ -1,5 +1,8 @@
 # Font Builder Studio
 
+You can use the Static Version @ [fontstudio.stitchee.ca](https://fontstudio.stitchee.ca)
+
+
 A browser-based font viewer/editor. Create, edit and convert fonts in the browser with an
 interactive glyph-outline canvas editor. Built on **FontForge**'s Python bindings,
 hosted as a single Docker container.
